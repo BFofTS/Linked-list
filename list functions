@@ -1,0 +1,165 @@
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct node Node;
+typedef struct node{
+	int n;
+	Node *next;
+};
+typedef struct{
+	Node *head;
+	Node *last;
+}List;
+void add_list(List *list,int data)
+{
+	Node *p = (Node*)malloc(sizeof(Node));
+	p->n = data;
+	p->next = NULL;
+	if (list->head) {
+		list->last->next = p;
+		list->last = p;
+	}
+	else {
+		list->head = p;
+		list->last = p;
+	}
+}
+Node *find(int data,Node *head)
+{
+	Node *p = head;
+	while (p&&p->n != data) {
+		p = p->next;
+	}
+	return p;
+}
+Node *findpre(int data, Node *head)
+{
+	Node *p = head;
+	while (p->next&&p->next->n != data) {
+		p = p->next;
+	}
+	return p;
+}
+void output(Node *p)
+{
+	Node *q;
+	for (q = p; q; q = q->next) {
+		printf("%4d", q->n);
+	}
+	printf("\n");
+}
+void insert(int value,Node *p)      
+{
+	Node *s;
+	s =(Node*)malloc(sizeof(Node));
+	s->n = value;
+	s->next = p->next;
+	p->next = s;
+}
+void insert_before(int value,int data,List *list)
+{
+	Node *s = (Node*)malloc(sizeof(Node)),*p=find(data,list->head);
+	s->n = value;
+	s->next = p;
+	if (p == list->head) {
+		list->head = s;
+	}
+	else {
+		Node *q = findpre(data, list->head);
+		q->next = s;
+	}
+}
+void insert_sort(List *list, int x) {
+	Node *p,*q;
+	if (x < list->head->n) {
+		insert_before(x, list->head->n,list);
+	}
+	else {
+		for (p = list->head; p&&p->n <= x; q = p, p = p->next);
+		insert(x, q);
+		if (q == list->last) {
+			list->last = list->last->next;
+		}
+	}
+}
+void sort(List *list,List *l)
+{
+	Node *p = list->head;
+	add_list(l, p->n);
+	for (p = list->head->next; p; p = p->next) {
+		insert_sort(l, p->n);
+	}
+}
+void cancel1(List *list,int data)
+{
+	Node *p = list->head, *q = find(data, list->head);
+	if (q == p) {
+		list->head = p->next;
+		free(p);
+	}
+	else {
+		if (q) {
+			Node *k = findpre(data, list->head);
+			k->next = q->next;
+			free(q);
+		}
+	}
+}
+void cancel2(Node **q)
+{
+	Node *p = *q;
+	*q = p->next;
+	free(p);
+}
+void all_cancel(List *list, int data)
+{
+	Node *p;
+	while (p = find(data, list->head)) {
+		cancel1(list, data);
+	}
+}
+void remove_list(List *list)
+{
+	Node *p, *q = list->head, *k;
+	for (p = q; p->next; p = list->head) {
+		k = p->next;
+		list->head = k;
+		all_cancel(list, p->n);
+		p->next = list->head;
+	}
+	list->head = q;
+}
+void inverse(List *list)
+{
+	Node *p = list->head, *tmp, *q = p->next;
+	for (; q; p = q, q = tmp) {
+		tmp = q->next;
+		q->next = p;
+	}
+	list->head->next = NULL;
+	list->last = list->head;
+	list->head = p;
+}
+void delete(Node *head)
+{
+	Node *p = head, *q;
+	for (; p; p = q) {
+		q = p->next;
+		free(p);
+	}
+}
+int main()
+{
+	List list, l;
+	list.head = NULL;  list.last = NULL;
+	l = list;
+	int i, value;
+	for (i = 1; i <= 10; i++) {
+		scanf("%d", &value);
+		add_list(&list, value);
+	}
+	output(list.head);
+	sort(&list, &l);
+	output(l.head);
+	delete(list.head);
+	delete(l.head);
+}
